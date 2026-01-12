@@ -5,40 +5,102 @@
   <title>Git Commands Quiz</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
+      font-family: "Century Schoolbook", Georgia, serif;
+      background: #cfe8f6;
       padding: 20px;
     }
+
     .quiz-container {
       max-width: 600px;
       margin: auto;
       background: white;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+
     h1 {
       text-align: center;
     }
+
+    .progress, .timer {
+      font-size: 14px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
     .question {
       font-weight: bold;
       margin-bottom: 15px;
     }
-    .options label {
-      display: block;
-      margin-bottom: 10px;
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .option-box {
+      border: 2px solid #cfd8dc;
+      border-radius: 6px;
+      padding: 10px;
       cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
     }
-    .progress {
-      margin-bottom: 15px;
-      font-size: 14px;
-      color: #555;
+
+    .option-box:hover {
+      background: #f1f8fc;
     }
-    .result {
-      margin-top: 20px;
+
+    .option-box input {
+      margin-right: 8px;
+    }
+
+    .option-box.disabled {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .feedback {
+      margin-top: 15px;
       font-size: 18px;
       font-weight: bold;
-      text-align: center;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeSlide 0.4s forwards;
+    }
+
+    .correct {
+      color: #1b5e20;
+    }
+
+    .incorrect {
+      color: #b71c1c;
+    }
+
+    .timeout {
+      color: #e65100;
+    }
+
+    .correct-answer {
+      font-size: 14px;
+      margin-top: 6px;
+      color: #333;
+    }
+
+    @keyframes fadeSlide {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 16px;
+      font-size: 16px;
+      font-family: inherit;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -47,11 +109,10 @@
 <div class="quiz-container">
   <h1>Git Commands Quiz</h1>
   <div id="quiz"></div>
-  <div id="result" class="result"></div>
 </div>
 
 <script>
-  const questions = [
+  const originalQuestions = [
     {
       question: "Which command initializes a new Git repository?",
       options: ["git start", "git init", "git new", "git create"],
@@ -104,53 +165,134 @@
     }
   ];
 
+  let questions = [];
   let currentQuestion = 0;
   let score = 0;
+  let timer;
+  let timeLeft = 15;
 
   const quizDiv = document.getElementById("quiz");
-  const resultDiv = document.getElementById("result");
+
+  function shuffleArray(array) {
+    return array
+      .map(item => ({ item, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ item }) => item);
+  }
+
+  function shuffleAnswers(question) {
+    const indexedOptions = question.options.map((opt, index) => ({
+      text: opt,
+      originalIndex: index
+    }));
+
+    const shuffled = shuffleArray(indexedOptions);
+
+    return {
+      question: question.question,
+      options: shuffled.map(o => o.text),
+      answer: shuffled.findIndex(o => o.originalIndex === question.answer)
+    };
+  }
+
+  function startQuiz() {
+    questions = shuffleArray(originalQuestions).map(q => shuffleAnswers(q));
+    currentQuestion = 0;
+    score = 0;
+    loadQuestion();
+  }
 
   function loadQuestion() {
+    clearInterval(timer);
+    timeLeft = 15;
+
     const q = questions[currentQuestion];
 
     quizDiv.innerHTML = `
       <div class="progress">
         Question ${currentQuestion + 1} of ${questions.length}
       </div>
+      <div class="timer">
+        Time left: <span id="time">${timeLeft}</span>s
+      </div>
       <div class="question">${q.question}</div>
       <div class="options">
         ${q.options.map((opt, i) => `
-          <label>
-            <input type="radio" name="option" value="${i}" onchange="submitAnswer(${i})">
+          <label class="option-box">
+            <input type="radio" name="option" onchange="submitAnswer(${i}, false)">
             ${opt}
           </label>
         `).join("")}
       </div>
+      <div id="feedback"></div>
     `;
+
+    startTimer();
   }
 
-  function submitAnswer(selectedIndex) {
-    if (selectedIndex === questions[currentQuestion].answer) {
+  function startTimer() {
+    timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById("time").textContent = timeLeft;
+
+      if (timeLeft === 0) {
+        clearInterval(timer);
+        submitAnswer(null, true);
+      }
+    }, 1000);
+  }
+
+  function submitAnswer(selectedIndex, isTimeout) {
+    clearInterval(timer);
+
+    document.querySelectorAll('.option-box').forEach(box => {
+      box.classList.add('disabled');
+    });
+
+    const q = questions[currentQuestion];
+    const feedbackDiv = document.getElementById("feedback");
+
+    if (isTimeout) {
+      feedbackDiv.innerHTML = `
+        <div class="feedback timeout">Out of time!</div>
+        <div class="correct-answer">
+          Correct answer: <strong>${q.options[q.answer]}</strong>
+        </div>
+      `;
+    } else if (selectedIndex === q.answer) {
       score++;
+      feedbackDiv.innerHTML = `<div class="feedback correct">Correct!</div>`;
+    } else {
+      feedbackDiv.innerHTML = `
+        <div class="feedback incorrect">Incorrect!</div>
+        <div class="correct-answer">
+          Correct answer: <strong>${q.options[q.answer]}</strong>
+        </div>
+      `;
     }
 
     setTimeout(() => {
       currentQuestion++;
-
       if (currentQuestion < questions.length) {
         loadQuestion();
       } else {
         showResult();
       }
-    }, 300); // small delay for better UX
+    }, 1800);
   }
 
   function showResult() {
-    quizDiv.innerHTML = "";
-    resultDiv.innerText = `You scored ${score} out of ${questions.length}`;
+    quizDiv.innerHTML = `
+      <h2 style="text-align:center;">
+        You scored ${score} out of ${questions.length}
+      </h2>
+      <div style="text-align:center;">
+        <button onclick="startQuiz()">Restart Quiz</button>
+      </div>
+    `;
   }
 
-  loadQuestion();
+  startQuiz();
 </script>
 
 </body>
