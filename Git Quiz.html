@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Git Commands Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    .quiz-container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    .question {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <h1>Git Commands Quiz</h1>
+  <div id="quiz"></div>
+  <button onclick="submitQuiz()">Submit Quiz</button>
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+  const questions = [
+    {
+      question: "1. Which command initializes a new Git repository?",
+      options: ["git start", "git init", "git new", "git create"],
+      answer: 1
+    },
+    {
+      question: "2. Which command checks the status of your working directory?",
+      options: ["git check", "git status", "git state", "git info"],
+      answer: 1
+    },
+    {
+      question: "3. How do you stage all modified files?",
+      options: ["git stage .", "git add .", "git commit .", "git push ."],
+      answer: 1
+    },
+    {
+      question: "4. Which command creates a new commit?",
+      options: ["git save", "git record", "git commit", "git push"],
+      answer: 2
+    },
+    {
+      question: "5. How do you view the commit history?",
+      options: ["git history", "git log", "git commits", "git show"],
+      answer: 1
+    },
+    {
+      question: "6. Which command uploads commits to a remote repository?",
+      options: ["git upload", "git send", "git push", "git publish"],
+      answer: 2
+    },
+    {
+      question: "7. Which command downloads changes from a remote repository?",
+      options: ["git pull", "git fetch", "git clone", "All of the above"],
+      answer: 3
+    },
+    {
+      question: "8. How do you create a new branch?",
+      options: ["git new branch", "git branch <name>", "git checkout new", "git create branch"],
+      answer: 1
+    },
+    {
+      question: "9. Which command switches to another branch?",
+      options: ["git move", "git switch", "git checkout", "Both B and C"],
+      answer: 3
+    },
+    {
+      question: "10. Which command copies a remote repository locally?",
+      options: ["git pull", "git fetch", "git clone", "git copy"],
+      answer: 2
+    }
+  ];
+
+  const quizDiv = document.getElementById("quiz");
+
+  function loadQuiz() {
+    questions.forEach((q, index) => {
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <div class="question">${q.question}</div>
+        <div class="options">
+          ${q.options.map((opt, i) => `
+            <label>
+              <input type="radio" name="q${index}" value="${i}">
+              ${opt}
+            </label>
+          `).join("")}
+        </div>
+        <hr>
+      `;
+      quizDiv.appendChild(div);
+    });
+  }
+
+  function submitQuiz() {
+    let score = 0;
+
+    questions.forEach((q, index) => {
+      const selected = document.querySelector(`input[name="q${index}"]:checked`);
+      if (selected && parseInt(selected.value) === q.answer) {
+        score++;
+      }
+    });
+
+    document.getElementById("result").innerText =
+      `You scored ${score} out of ${questions.length}`;
+  }
+
+  loadQuiz();
+</script>
+
+</body>
+</html>
