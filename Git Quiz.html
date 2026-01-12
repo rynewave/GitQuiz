@@ -10,7 +10,7 @@
       padding: 20px;
     }
     .quiz-container {
-      max-width: 700px;
+      max-width: 600px;
       margin: auto;
       background: white;
       padding: 20px;
@@ -22,23 +22,23 @@
     }
     .question {
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
     .options label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       cursor: pointer;
     }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
+    .progress {
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #555;
     }
     .result {
       margin-top: 20px;
       font-size: 18px;
       font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
@@ -47,100 +47,110 @@
 <div class="quiz-container">
   <h1>Git Commands Quiz</h1>
   <div id="quiz"></div>
-  <button onclick="submitQuiz()">Submit Quiz</button>
   <div id="result" class="result"></div>
 </div>
 
 <script>
   const questions = [
     {
-      question: "1. Which command initializes a new Git repository?",
+      question: "Which command initializes a new Git repository?",
       options: ["git start", "git init", "git new", "git create"],
       answer: 1
     },
     {
-      question: "2. Which command checks the status of your working directory?",
+      question: "Which command checks the status of your working directory?",
       options: ["git check", "git status", "git state", "git info"],
       answer: 1
     },
     {
-      question: "3. How do you stage all modified files?",
+      question: "How do you stage all modified files?",
       options: ["git stage .", "git add .", "git commit .", "git push ."],
       answer: 1
     },
     {
-      question: "4. Which command creates a new commit?",
+      question: "Which command creates a new commit?",
       options: ["git save", "git record", "git commit", "git push"],
       answer: 2
     },
     {
-      question: "5. How do you view the commit history?",
+      question: "How do you view the commit history?",
       options: ["git history", "git log", "git commits", "git show"],
       answer: 1
     },
     {
-      question: "6. Which command uploads commits to a remote repository?",
+      question: "Which command uploads commits to a remote repository?",
       options: ["git upload", "git send", "git push", "git publish"],
       answer: 2
     },
     {
-      question: "7. Which command downloads changes from a remote repository?",
+      question: "Which command downloads changes from a remote repository?",
       options: ["git pull", "git fetch", "git clone", "All of the above"],
       answer: 3
     },
     {
-      question: "8. How do you create a new branch?",
+      question: "How do you create a new branch?",
       options: ["git new branch", "git branch <name>", "git checkout new", "git create branch"],
       answer: 1
     },
     {
-      question: "9. Which command switches to another branch?",
+      question: "Which command switches to another branch?",
       options: ["git move", "git switch", "git checkout", "Both B and C"],
       answer: 3
     },
     {
-      question: "10. Which command copies a remote repository locally?",
+      question: "Which command copies a remote repository locally?",
       options: ["git pull", "git fetch", "git clone", "git copy"],
       answer: 2
     }
   ];
 
+  let currentQuestion = 0;
+  let score = 0;
+
   const quizDiv = document.getElementById("quiz");
+  const resultDiv = document.getElementById("result");
 
-  function loadQuiz() {
-    questions.forEach((q, index) => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <div class="question">${q.question}</div>
-        <div class="options">
-          ${q.options.map((opt, i) => `
-            <label>
-              <input type="radio" name="q${index}" value="${i}">
-              ${opt}
-            </label>
-          `).join("")}
-        </div>
-        <hr>
-      `;
-      quizDiv.appendChild(div);
-    });
+  function loadQuestion() {
+    const q = questions[currentQuestion];
+
+    quizDiv.innerHTML = `
+      <div class="progress">
+        Question ${currentQuestion + 1} of ${questions.length}
+      </div>
+      <div class="question">${q.question}</div>
+      <div class="options">
+        ${q.options.map((opt, i) => `
+          <label>
+            <input type="radio" name="option" value="${i}" onchange="submitAnswer(${i})">
+            ${opt}
+          </label>
+        `).join("")}
+      </div>
+    `;
   }
 
-  function submitQuiz() {
-    let score = 0;
+  function submitAnswer(selectedIndex) {
+    if (selectedIndex === questions[currentQuestion].answer) {
+      score++;
+    }
 
-    questions.forEach((q, index) => {
-      const selected = document.querySelector(`input[name="q${index}"]:checked`);
-      if (selected && parseInt(selected.value) === q.answer) {
-        score++;
+    setTimeout(() => {
+      currentQuestion++;
+
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
       }
-    });
-
-    document.getElementById("result").innerText =
-      `You scored ${score} out of ${questions.length}`;
+    }, 300); // small delay for better UX
   }
 
-  loadQuiz();
+  function showResult() {
+    quizDiv.innerHTML = "";
+    resultDiv.innerText = `You scored ${score} out of ${questions.length}`;
+  }
+
+  loadQuestion();
 </script>
 
 </body>
